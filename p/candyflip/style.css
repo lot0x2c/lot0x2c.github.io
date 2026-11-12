@@ -1,0 +1,197 @@
+:root {
+	--bg: #feedf3; --fg: #5c4250; --link: #007888; --accent: #c5278a;
+	--panel: #f8e2e7; --edge: #e0ccd1;
+	color-scheme: light;
+}
+:root[data-theme="flip"] {
+	--bg: #1a1218; --fg: #d4b8c8; --link: #00b8d4; --accent: #f848b8;
+	--panel: #2a2028; --edge: #3d2d38;
+	color-scheme: dark;
+}
+body {
+	font-family: "Ubuntu Sans", sans-serif;
+	font-size: 15px;
+	line-height: 1.3;
+	color: var(--fg);
+	background: var(--bg);
+	margin: 0;
+	padding: 1em 22px 3em 22px;
+	border-top: 2px solid var(--accent);
+	accent-color: var(--accent);
+}
+main { position: relative; }
+main > :not(.sec):not(pre),
+details.sec > :not(.cfg):not(pre):not(summary) { max-width: 780px; }
+#flip { max-width: none; }
+a { color: var(--link); }
+#flip {
+	position: absolute; top: 0; left: 700px;
+	font: bold 0.9em "Ubuntu Sans Mono", monospace; padding: 0.2em 0.7em; cursor: pointer;
+	color: var(--accent); background: var(--panel);
+	border: 1px solid var(--accent);
+}
+#flip:hover { background: var(--accent); color: var(--bg); }
+h1 { font-size: 1.6em; margin: 1em 0 0.2em 0; font-family: "Ubuntu Sans Mono", monospace; }
+h2 { font-size: 1.25em; margin: 1.6em 0 0.6em 0; }
+h3 { font-size: 1.05em; margin: 1.2em 0 0.5em 0; }
+p { margin: 0.8em 0; }
+ul { margin: 0.8em 0; }
+pre, code { font-family: "Ubuntu Sans Mono", monospace; font-size: 0.85em; }
+pre { margin: 0.8em 0; overflow-x: auto; }
+blockquote { margin: 0.8em 0 0.8em 40px; }
+table { border-collapse: collapse; margin: 0.8em 0; }
+th, td { text-align: left; padding: 1px 16px 1px 0; font-size: 0.9em; }
+td.hex, td.name { font-family: "Ubuntu Sans Mono", monospace; }
+.shots, .previews { display: flex; gap: 1em; flex-wrap: wrap; margin: 1em 0; }
+.shots figure { margin: 0; flex: 1 1 300px; }
+.shots img { width: 100%; display: block; }
+.shots figcaption, .previews figcaption { font-weight: bold; text-align: center; font-size: 0.9em; }
+.sw { display: inline-block; width: 0.9em; height: 0.9em; border: 1px solid #888; vertical-align: -1px; margin-right: 4px; }
+td input { margin: 0 0 0 4px; }
+#out { background: var(--panel); padding: 0.5em 0.8em; }
+
+.cfg select, .cfg label { font-size: 0.95em; }
+.cfg label { margin-right: 0.8em; white-space: nowrap; }
+table.opts td:first-child { font-weight: bold; }
+#src {
+	display: block; width: 100%; box-sizing: border-box; margin: 0.8em 0;
+	font: 0.85em/1.35 "Ubuntu Sans Mono", monospace; tab-size: 8;
+	color: var(--fg); background: var(--panel); border: 1px solid var(--edge);
+	padding: 0.5em 0.8em; resize: vertical;
+}
+.previews { flex-direction: row; flex-wrap: wrap; }
+.previews figure { margin: 0; flex: 1 1 320px; min-width: 0; }
+
+/* emacs preview: colours come from --b00..--b0F set by play.js */
+.emacs { background: var(--b00); color: var(--b05); border: 1px solid var(--edge); font: 14px/1.4 "Ubuntu Sans Mono", monospace; }
+.emacs .buf { display: flex; overflow-x: auto; min-height: 24em; }
+.emacs pre { margin: 0; font: inherit; tab-size: 8; padding: 0.4em 0; }
+.emacs .gutter { background: var(--b01); color: var(--b03); text-align: right; padding: 0.4em 0.5em; user-select: none; min-width: 2ch; }
+.emacs .gutter .cur-ln { color: var(--acc); }
+.emacs .text { padding-left: 0.6em; flex: 1; }
+.emacs .cursor { background: var(--acc); }
+.emacs .ml { background: var(--b02); color: var(--b04); padding: 1px 0; white-space: pre; overflow: hidden; }
+.emacs[data-modeline="boxed"] .ml { outline: 1px solid var(--acc); outline-offset: -1px; }
+.emacs .bid { color: var(--b0B); }
+.emacs .mb { padding: 1px 0.3em; white-space: pre; }
+.emacs .prompt { color: var(--acc); }
+
+.emacs .k { color: var(--b0E); } .emacs .s { color: var(--b0B); } .emacs .f { color: var(--b0D); }
+.emacs .t { color: var(--b0A); } .emacs .n { color: var(--b09); } .emacs .v { color: var(--b08); }
+.emacs .b { color: var(--b0C); } .emacs .c { color: var(--b03); } .emacs .p { color: var(--b0D); }
+.emacs .d { color: var(--b04); }
+
+/* org: headings follow outline-1..8, which inherit font-lock faces */
+.emacs .h1 { color: var(--b0D); } .emacs .h2 { color: var(--b08); } .emacs .h3 { color: var(--b0E); }
+.emacs .h4 { color: var(--b03); } .emacs .h5 { color: var(--b0A); } .emacs .h6 { color: var(--b09); }
+.emacs .h7 { color: var(--b0C); } .emacs .h8 { color: var(--b0B); }
+.emacs[data-pal="acid"] .h3 { color: var(--b09); font-weight: bold; }
+.emacs .todo { color: var(--b08); background: var(--b01); }
+.emacs .done { color: var(--b0B); background: var(--b01); }
+.emacs .ok { color: var(--b0B); } .emacs .otitle { color: var(--b09); font-weight: bold; }
+.emacs .oinfo { color: var(--b0C); } .emacs .osk { color: var(--b09); }
+.emacs .obl { color: var(--b03); background: var(--b01); }
+.emacs .oblk { background: var(--b01); }
+.emacs .ov { color: var(--b0A); } .emacs .olink { color: var(--b0D); }
+.emacs .odate { color: var(--b0E); text-decoration: underline; }
+.emacs .obold { font-weight: bold; } .emacs .oital { font-style: italic; }
+.emacs .otable { color: var(--b0E); }
+
+/* region: inverse swaps each token's colours, background uses base02 */
+.emacs[data-region="background"] .text::selection,
+.emacs[data-region="background"] .text *::selection { background: var(--b02); }
+.emacs[data-region="inverse"] .text::selection,
+.emacs[data-region="inverse"] .text *::selection { background: var(--b05); color: var(--b00); }
+.emacs[data-region="inverse"] .k::selection { background: var(--b0E); color: var(--b00); }
+.emacs[data-region="inverse"] .s::selection { background: var(--b0B); color: var(--b00); }
+.emacs[data-region="inverse"] .f::selection { background: var(--b0D); color: var(--b00); }
+.emacs[data-region="inverse"] .t::selection { background: var(--b0A); color: var(--b00); }
+.emacs[data-region="inverse"] .n::selection { background: var(--b09); color: var(--b00); }
+.emacs[data-region="inverse"] .v::selection { background: var(--b08); color: var(--b00); }
+.emacs[data-region="inverse"] .b::selection { background: var(--b0C); color: var(--b00); }
+.emacs[data-region="inverse"] .c::selection { background: var(--b03); color: var(--b00); }
+.emacs[data-region="inverse"] .p::selection { background: var(--b0D); color: var(--b00); }
+.emacs[data-region="inverse"] .d::selection { background: var(--b04); color: var(--b00); }
+.emacs[data-region="inverse"] .h1::selection { background: var(--b0D); color: var(--b00); }
+.emacs[data-region="inverse"] .h2::selection { background: var(--b08); color: var(--b00); }
+.emacs[data-region="inverse"] .h3::selection { background: var(--b0E); color: var(--b00); }
+.emacs[data-region="inverse"] .h4::selection { background: var(--b03); color: var(--b00); }
+.emacs[data-region="inverse"] .h5::selection { background: var(--b0A); color: var(--b00); }
+.emacs[data-region="inverse"] .h6::selection { background: var(--b09); color: var(--b00); }
+.emacs[data-region="inverse"] .h7::selection { background: var(--b0C); color: var(--b00); }
+.emacs[data-region="inverse"] .h8::selection { background: var(--b0B); color: var(--b00); }
+.emacs[data-region="inverse"] .todo::selection { background: var(--b08); color: var(--b00); }
+.emacs[data-region="inverse"] .done::selection { background: var(--b0B); color: var(--b00); }
+.emacs[data-region="inverse"] .ok::selection { background: var(--b0B); color: var(--b00); }
+.emacs[data-region="inverse"] .otitle::selection { background: var(--b09); color: var(--b00); }
+.emacs[data-region="inverse"] .oinfo::selection { background: var(--b0C); color: var(--b00); }
+.emacs[data-region="inverse"] .osk::selection { background: var(--b09); color: var(--b00); }
+.emacs[data-region="inverse"] .obl::selection { background: var(--b03); color: var(--b00); }
+.emacs[data-region="inverse"] .ov::selection { background: var(--b0A); color: var(--b00); }
+.emacs[data-region="inverse"] .olink::selection { background: var(--b0D); color: var(--b00); }
+.emacs[data-region="inverse"] .odate::selection { background: var(--b0E); color: var(--b00); }
+.emacs[data-region="inverse"] .otable::selection { background: var(--b0E); color: var(--b00); }
+.emacs[data-pal="acid"][data-region="inverse"] .h3::selection { background: var(--b09); }
+
+/* configuration: controls on the left, previews on the right */
+.cfg { display: grid; grid-template-columns: minmax(280px, 520px) minmax(0, 1fr); gap: 1.5em; align-items: start; margin-top: 1em; }
+.cfg-right { position: sticky; top: 0.5em; }
+.cfg-right > p { margin-top: 0; }
+.opt { margin: 0 0 0.9em 0; }
+.opt-name { font-weight: bold; }
+.opt-name code { font-size: 1em; }
+.opt-vals { margin: 0.15em 0; }
+.opt-doc { margin: 0.15em 0 0 0; font-size: 0.85em; opacity: 0.85; }
+#fmt { margin-top: 0; }
+@media (max-width: 900px) {
+	.cfg { grid-template-columns: minmax(0, 1fr); }
+	.cfg-right { position: static; }
+	#flip { left: auto; right: 0; }
+}
+
+/* foldable sections: + when closed, - when open */
+details.sec > summary { list-style: none; cursor: pointer; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary h2 { display: inline; }
+details.sec > summary h2::before { content: "+ "; font-family: "Ubuntu Sans Mono", monospace; color: var(--accent); }
+details.sec[open] > summary h2::before { content: "- "; }
+details.sec { margin: 1.4em 0 0 0; }
+details.sec > summary:hover h2 { color: var(--accent); }
+
+/* options, minimal: name on the left, values as plain text; the chosen one is bracketed */
+.opt { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 1em; margin: 0 0 0.35em 0; }
+.opt-name { flex: 0 0 29ch; font-weight: normal; font-family: "Ubuntu Sans Mono", monospace; }
+.opt-name[title] { cursor: help; }
+.opt-vals { margin: 0; font-family: "Ubuntu Sans Mono", monospace; }
+.cfg .opt-vals label { margin-right: 0.6em; cursor: pointer; }
+.opt-vals input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
+.opt-vals label:has(input:checked) { font-weight: bold; }
+.opt-vals label:has(input:focus-visible) { outline: 1px dotted var(--accent); }
+.opt-vals label:hover { color: var(--accent); }
+
+/* copy buttons on code blocks */
+.copywrap { position: relative; width: fit-content; max-width: 100%; }
+.copywrap > pre { padding-right: 4.5em; }
+.copy {
+	position: absolute; top: 0.3em; right: 0.3em;
+	font: 0.8em "Ubuntu Sans Mono", monospace; padding: 0.1em 0.5em; cursor: pointer;
+	color: var(--fg); background: var(--panel); border: 1px solid var(--edge);
+}
+.copy:hover { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.copywrap > #out { padding-right: 4.5em; }
+
+/* thin box around code blocks (not the emacs previews) */
+main pre { border: 1px solid var(--edge); padding: 0.5em 0.8em; }
+main .copywrap > pre { padding-right: 4.5em; }
+.emacs pre { border: 0; }
+
+/* screenshots: full page width, half each; stacked on phones */
+main > div.shots { max-width: none; }
+.shots { flex-wrap: nowrap; }
+.shots figure { flex: 1 1 0; min-width: 0; }
+@media (max-width: 700px) { .shots { flex-direction: column; } }
+
+/* installation: numbered list of methods */
+ol.toc { margin: 0.4em 0 0.8em 0; padding-left: 2em; }
+ol.toc li { margin: 0.1em 0; }
+details.sec h3 { border-bottom: 1px solid var(--edge); padding-bottom: 0.15em; }
