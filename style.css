@@ -45,7 +45,7 @@ h1 {
 .avatar { object-fit: cover; }
 
 a { color: var(--teal); }
-a:hover { background: color-mix(in srgb, var(--teal) 12%, transparent); }
+a:hover { background: color-mix(in srgb, var(--teal) 50%, transparent); color: var(--text); text-decoration-color: var(--teal); }
 
 summary { cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
@@ -98,3 +98,12 @@ figcaption { font-size: 0.85em; color: var(--muted); margin-top: 0.5em; }
 .fig .head { fill: var(--teal); }
 .fig.small text { font-size: 12px; }
 .fig .b { font-weight: bold; }
+
+/* phones */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+@media (max-width: 600px) {
+  details p, .posts, .desk { margin-left: 1.4em; }
+  .posts li { margin: 0.5em 0; }
+  pre { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
+  figure { margin: 1.2em 0; }
+}
