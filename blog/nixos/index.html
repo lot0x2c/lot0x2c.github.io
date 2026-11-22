@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>why nixos · lot0x2c</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Ubuntu+Sans+Mono&display=swap">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<main>
+<p class="back"><a href="../../index.html">lot0x2c</a> / blog</p>
+<h1>why nixos</h1>
+<p class="date">2026-11-23</p>
+
+<p>I run NixOS on my laptop. This is why, and what it costs, so you can
+decide whether the trade makes sense for you.</p>
+
+<h2>What "declarative" means</h2>
+<p>NixOS gets described as "declarative", and that word does most of the
+explaining, so it's worth pinning down first.</p>
+<p>On most systems you reach a working setup by doing things in order:
+install a package, edit a file, enable a service. The system is the sum of
+every command anyone ever ran on it. The record of those commands is mostly
+your memory, plus your shell history until it fills up.</p>
+<p>Declarative means you write down what the system should be, and a program
+works out how to get there. On NixOS that description lives in
+<code>/etc/nixos/configuration.nix</code>. You don't install fish; you write
+down that your shell is fish. Here's a trimmed piece of mine:</p>
+<pre>{ pkgs, ... }:
+{
+  imports = [
+    ./modules/audio.nix
+    ./modules/network.nix
+    ./modules/power.nix
+    # ...
+  ];
+
+  users.users.you = {
+    isNormalUser = true;
+    shell = pkgs.fish;
+    extraGroups = [ "wheel" ];
+  };
+  security.sudo.execWheelOnly = true;
+
+  # install-time version, never bump it
+  system.stateVersion = "26.05";
+}</pre>
+
+<h2>How it works</h2>
+<ol>
+<li>Every package is built into its own directory under
+<code>/nix/store</code>, named by a hash of everything that went into
+building it: the source, the dependencies, the build options. Change any
+input and you get a different hash, so a different directory. Nothing is
+built over the top of something else.</li>
+<li>The whole system, meaning the kernel, the services and the files in
+<code>/etc</code>, is built the same way, as one more store path that refers
+to all the others.</li>
+<li><code>nixos-rebuild switch</code> builds that path, then points
+<code>/run/current-system</code> at it and starts or stops services to
+match.</li>
+<li>The previous system is still in the store. It stays in the boot menu as
+an older "generation".</li>
+</ol>
+<p>Two things follow. A build that fails never touches the running system,
+because building and switching are separate steps. And going back is just
+pointing at the old path again: <code>nixos-rebuild switch
+--rollback</code>, or pick the older generation at boot.</p>
+
+<h2>What I get out of it</h2>
+<ul>
+<li><b>The config is the documentation.</b> Mine is a 30-line file that
+imports a dozen modules: audio, boot, network, power, hardening and so on.
+When I want to know how something is set up, I read the module instead of
+trying to remember.</li>
+<li><b>Removing a line removes the thing.</b> On most distributions,
+uninstalling leaves config files, users and enabled services behind. On
+NixOS, anything that isn't in the config isn't in the system after the next
+rebuild. To be exact about the scope: that covers packages, services and
+<code>/etc</code>. Your home directory and the data under <code>/var</code>
+stay.</li>
+<li><b>Breaking things is cheap.</b> A bad update costs one reboot into the
+previous generation. Breaking the system becomes something you can undo,
+which makes it much less exciting.</li>
+<li><b>It can be reproduced.</b> With the same config and the same pinned
+nixpkgs revision (a flake with its lock file, or a pinned channel), another
+machine builds the same system. Without pinning, "the same config" means the
+same config built against whatever nixpkgs is today, which is a weaker
+claim.</li>
+</ul>
+
+<h2>The objections</h2>
+<p><b>"The learning curve is steep."</b> True. Nix is a small, lazy,
+functional language, its error messages are often unhelpful, and the
+documentation is spread across the manual, the wiki and the source. You can
+get a long way by copying options from
+<a href="https://search.nixos.org/options">search.nixos.org</a>, which lists
+every option with its type and default. But I won't claim the curve is
+gentle.</p>
+<p><b>"Downloaded binaries don't run."</b> Also true, and it follows from
+step 1. A program built for other distributions expects its loader at
+<code>/lib64/ld-linux-x86-64.so.2</code> and its libraries in
+<code>/usr/lib</code>. NixOS doesn't have those paths. It keeps exactly two
+files where other programs expect them, <code>/bin/sh</code> and
+<code>/usr/bin/env</code>, so that scripts can start and then find out
+nothing else is there. The fixes are to package the program, to enable
+<code>programs.nix-ld</code>, or to run it in an FHS environment such as
+<code>steam-run</code>.</p>
+<p><b>"It uses a lot of disk."</b> Every generation keeps its packages
+alive. <code>nix-collect-garbage -d</code> deletes old generations, and
+<code>nix.gc.automatic</code> does it on a schedule. Undo is free; storing
+the undo isn't.</p>
+<p><b>"It's just configuration management, like Ansible."</b> The difference
+is the point. Ansible runs steps against a system that already exists;
+anything the playbook doesn't mention, it leaves the way it found it. Over
+time the machine drifts away from the playbook. NixOS builds the system from
+the description every time, so there's nothing left over to drift.</p>
+
+<h2>So</h2>
+<p>If you want to know why your system is the way it is, NixOS gives you a
+file that says so. The price is learning Nix and giving up on running random
+binaries without a wrapper. For the machine I use every day, I think that's a
+fair trade.</p>
+<p>The other route to the same place is a system small enough to read all
+of; I wrote about that in
+<a href="../openbsd/index.html">bare minimum to get openbsd running</a>.
+Either way, you end up with a system you can explain.</p>
+</main>
+</body>
+</html>

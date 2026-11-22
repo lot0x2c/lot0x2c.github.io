@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>random vs secure · lot0x2c</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Ubuntu+Sans+Mono&display=swap">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<main>
+<p class="back"><a href="../../index.html">lot0x2c</a> / blog</p>
+<h1>random vs secure</h1>
+<p class="date">2026-11-23</p>
+
+<p>Most languages give you two ways to get a random number, and they look
+interchangeable. They aren't. One is fine for shuffling a playlist and
+dangerous for making a password; the other is fine for both. This is how to
+tell them apart, and why the difference exists.</p>
+
+<h2>Two meanings of "random"</h2>
+<p>In programming, "random" usually means <b>pseudorandom</b>: a
+deterministic sequence that looks random. A pseudorandom number generator
+(PRNG) keeps some internal state, and every call does two things: it
+computes an output from the state, and it updates the state. Start from the
+same state, called the seed, and you get the same sequence every time.</p>
+<p><b>Secure</b> random means cryptographically secure: output nobody can
+predict, even someone who knows the algorithm and has seen every output so
+far. A generator with that property is a CSPRNG.</p>
+<p>The difference isn't how random the numbers look. Both kinds pass
+statistical tests for randomness. The difference is who can predict the next
+one.</p>
+
+<h2>How a plain PRNG gives itself away</h2>
+<p>The simplest PRNG is the linear congruential generator: multiply, add,
+take the remainder. This one uses the constants from the example in the C
+standard:</p>
+<pre>static unsigned long state = 1;
+
+unsigned long next(void)
+{
+    state = (state * 1103515245 + 12345) % 2147483648;
+    return state;
+}</pre>
+<p>The output is the state. So if you see one output, you know the state,
+and you can compute every output after it by running the same line. A
+generator whose state you know is a list of numbers. You can just read
+ahead.</p>
+<p>Better PRNGs hide their state better, but not well enough to matter here:</p>
+<ul>
+<li>The Mersenne Twister, behind Python's <code>random</code>, Ruby's
+<code>rand</code> and PHP's <code>mt_rand</code>, can be rebuilt from 624
+consecutive 32-bit outputs. After that, every prediction is exact.</li>
+<li><code>Math.random()</code> in V8 (Chrome, Node) uses xorshift128+.
+People have recovered its state from a handful of outputs with an SMT
+solver; the exact number depends on the engine version.</li>
+</ul>
+<p>None of these generators is broken. Being hard to predict was never their
+job.</p>
+
+<h2>Seeds can be guessed too</h2>
+<p>Even when the outputs stay hidden, the seed may not. A common pattern is
+seeding with the current time in seconds, as in
+<code>srand(time(NULL))</code>. If an attacker knows a token was made in the
+last hour, there are 3,600 possible seeds, and trying all of them takes a
+laptop a fraction of a second. Seeding with the clock means anyone with a
+clock can play along.</p>
+
+<h2>What makes a generator secure</h2>
+<p>A CSPRNG needs two things: a seed nobody can guess, and a construction in
+which the outputs reveal nothing useful about the state.</p>
+<p>The kernel handles the seed. It collects unpredictable events from the
+hardware, such as interrupt timings and, where the CPU has one, its hardware
+random number instruction, and mixes them into a pool. For the second part,
+Linux and OpenBSD both use the ChaCha20 stream cipher as the generator.
+Working out its state from its output would mean breaking ChaCha20.</p>
+<p>You don't build one yourself. You ask the system:</p>
+<table>
+<tr><th></th><th>predictable (games, simulations, tests)</th><th>secure (tokens, keys, passwords)</th></tr>
+<tr><td>C</td><td><code>rand()</code>, <code>random()</code></td><td><code>getrandom(2)</code>, <code>arc4random(3)</code></td></tr>
+<tr><td>Python</td><td><code>random</code></td><td><code>secrets</code>, <code>os.urandom</code></td></tr>
+<tr><td>JavaScript</td><td><code>Math.random()</code></td><td><code>crypto.getRandomValues()</code></td></tr>
+<tr><td>Go</td><td><code>math/rand</code></td><td><code>crypto/rand</code></td></tr>
+<tr><td>shell</td><td><code>$RANDOM</code></td><td><code>/dev/urandom</code></td></tr>
+</table>
+<p>OpenBSD is the exception to the left column. Since 5.6,
+<code>rand()</code> and <code>random()</code> there return secure output
+unless you call <code>srand_deterministic()</code>. It's the one system where
+<code>rand()</code> is fine for passwords, and it got there by ignoring the
+seed you gave it.</p>
+
+<h2>A concrete case: password reset tokens</h2>
+<p>This looks like a random token:</p>
+<pre>const token = Math.random().toString(36).slice(2);</pre>
+<p>Here's what goes wrong. An attacker asks for a few password resets for
+their own account and reads the tokens from their own email. Those are
+outputs of <code>Math.random()</code>. From them they rebuild the generator's
+state, ask for a reset for your account, and compute the token that was just
+emailed to you. (This assumes both requests hit the same server process, so
+the same generator. On a single small server, they usually do.)</p>
+<p>The fix is the same length:</p>
+<pre>const bytes = crypto.getRandomValues(new Uint8Array(32));
+const token = Array.from(bytes, b =&gt; b.toString(16).padStart(2, "0")).join("");</pre>
+<p>That's 256 bits from the system's CSPRNG. In Python it's one call:
+<code>secrets.token_urlsafe(32)</code>.</p>
+
+<h2>The objections</h2>
+<p><b>"<code>/dev/random</code> is more secure than
+<code>/dev/urandom</code>, because it blocks."</b> That was the old advice.
+On Linux since 5.6, <code>/dev/random</code> blocks only until the pool has
+been seeded once at boot, and after that both files give output from the
+same CSPRNG. <code>getrandom(2)</code> with no flags behaves the same way.
+Use either.</p>
+<p><b>"Secure random is slow."</b> It's slower than xorshift, and it doesn't
+matter for tokens: you need 32 bytes, not a billion. The cases where a fast
+PRNG is worth it, like simulations that draw billions of numbers, are cases
+where you didn't need secrecy anyway.</p>
+<p><b>"So always use the secure one?"</b> Not always. A seeded PRNG is
+predictable on purpose. In a simulation, a test or a game's world generator,
+getting the same sequence from the same seed is the feature: it lets you
+replay exactly what happened, including the bug.</p>
+
+<h2>The rule</h2>
+<p>If anyone would gain something by predicting the number, use the secure
+generator. If you'd gain something by reproducing it, use a seeded PRNG and
+write the seed down. If neither, either works, and the secure one is the
+safer default.</p>
+</main>
+</body>
+</html>

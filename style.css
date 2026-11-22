@@ -4,6 +4,8 @@
   --text: #222;
   --muted: #777;
   --teal: #007888;
+  --panel: #f3f3f3;
+  --line: #bbb;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -12,6 +14,8 @@
     --text: #ccc;
     --muted: #777;
     --teal: #10c4b0;
+    --panel: #1c1c1c;
+    --line: #444;
   }
 }
 
@@ -41,7 +45,7 @@ h1 {
 .avatar { object-fit: cover; }
 
 a { color: var(--teal); }
-a:hover { background: var(--teal); color: var(--bg); text-decoration: none; }
+a:hover { background: color-mix(in srgb, var(--teal) 12%, transparent); }
 
 summary { cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
@@ -59,3 +63,38 @@ footer { line-height: 2; }
 }
 .credit { margin: 0.3em 0 0; font-size: 0.85em; color: var(--muted); }
 .credit a { color: inherit; }
+
+/* homepage photo */
+.desk { margin: 0.6em 0 0.6em 2.2em; }
+.desk img { width: 100%; height: auto; display: block; }
+
+/* blog list */
+.posts { list-style: none; margin: 0.3em 0 0 2.2em; padding: 0; }
+.posts li { margin: 0.2em 0; }
+.posts .d { color: var(--muted); font-size: 0.85em; margin-left: 0.4em; }
+
+/* posts and project pages */
+.back { font-size: 0.9em; color: var(--muted); }
+.date { color: var(--muted); font-size: 0.9em; margin-top: -0.4em; }
+h2 { font-size: 1em; margin: 2em 0 0.4em; }
+pre, code { font-family: "Ubuntu Sans Mono", monospace; font-size: 0.9em; }
+pre { background: var(--panel); padding: 0.6em 0.8em; overflow-x: auto; line-height: 1.45; }
+:not(pre) > code { background: var(--panel); padding: 0 0.25em; }
+li { margin: 0.25em 0; }
+table { border-collapse: collapse; margin: 1em 0; font-size: 0.9em; display: block; overflow-x: auto; }
+th, td { text-align: left; padding: 0.25em 0.9em 0.25em 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+figure { margin: 1.5em 0; }
+figure svg { width: 100%; height: auto; display: block; }
+figcaption { font-size: 0.85em; color: var(--muted); margin-top: 0.5em; }
+
+/* inline svg figures follow the page colours */
+.fig text { fill: var(--text); font: 14px "Ubuntu Sans Mono", monospace; }
+.fig .m { fill: var(--muted); }
+.fig .t { fill: var(--teal); }
+.fig .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.fig .act { fill: var(--panel); stroke: var(--teal); stroke-width: 2; }
+.fig .screen { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+.fig .ln { stroke: var(--teal); stroke-width: 2; fill: none; }
+.fig .head { fill: var(--teal); }
+.fig.small text { font-size: 12px; }
+.fig .b { font-weight: bold; }

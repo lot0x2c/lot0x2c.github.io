@@ -335,7 +335,7 @@
 		],
 		org: [
 			"#+title: candy notes",
-			"#+author: ro15rend",
+			"#+author: lot0x2c",
 			"",
 			"* TODO finish the website",
 			"  SCHEDULED: <2026-11-14 Sat>",
@@ -343,7 +343,7 @@
 			"  - [X] write the /palette/ table",
 			"* DONE rename the themes",
 			"** colors live in =base16-candy-theme.el=",
-			"*** see [[https://github.com/ro15rend/candyflip][the repo]]",
+			"*** see [[https://github.com/lot0x2c/candyflip][the repo]]",
 			"",
 			"| theme      | background |",
 			"|------------+------------|",
