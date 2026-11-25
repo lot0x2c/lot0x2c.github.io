@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>lot0x2c</title>
-<link rel="stylesheet" href="style.css?v=ba5d13ab">
+<link rel="stylesheet" href="style.css?v=f68dcd4a">
 </head>
 <body>
 <main>
@@ -104,7 +104,9 @@ reading <a href="https://ee.stanford.edu/~hellman/publications/24.pdf">new direc
 <ul class="posts">
 <li>github: <a href="https://github.com/lot0x2c">github.com/lot0x2c</a></li>
 <li>monero: <code class="xmr">82YJDkHS9DHRwuQBGhGL9wSzi4RYcfB6TbUAG9dWvFbjgoM2AF3YdvTTrFvaRHi4o9AsqTwpu3HoZY1MoB1WbE2y9c3mAfE</code></li>
-<li>tor: <a href="http://x7j2xv6vreo66zj2vxlnz2akw4d2bojatkwkgtp2qf7m3euayinvmuvd.onion/">x7j2xv6vreo66zj2vxlnz2akw4d2bojatkwkgtp2qf7m3euayinvmuvd.onion</a></li>
+<li>simplex: <a href="https://smp8.simplex.im/a#K6vapEmJEygEplBsgMhNuvgue1y_j_bk03KH_Lt2bgc">smp8.simplex.im/a#K6vapE…t2bgc</a></li>
+<li>session: <code class="xmr">05b1a35a87b1671ddeba95785388be1a3c49f80a5a1cbcfb213b1fe6bc20e5de7e</code></li>
+<li>tor:<ahref="http://x7j2xv6vreo66zj2vxlnz2akw4d2bojatkwkgtp2qf7m3euayinvmuvd.onion/">x7j2xv6vreo66zj2vxlnz2akw4d2bojatkwkgtp2qf7m3euayinvmuvd.onion</a></li>
 <!-- <li>pgp: <a href="pgp.asc">pgp.asc</a>, fingerprint <code>FINGERPRINT</code></li> -->
 </ul>
 </details>
@@ -113,5 +115,16 @@ reading <a href="https://ee.stanford.edu/~hellman/publications/24.pdf">new direc
 <p class="credit">avatar: flower fractal by stefan goschler, from <a href="https://www.gnu.org/graphics/goschler-its-me-and-gnu.html">it's me, and gnu</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">cc by-sa 4.0</a>.</p>
 <p class="credit">desk photo: taken by my roommate, ickkick.</p>
 </footer>
+<script>
+document.querySelectorAll(".xmr").forEach(function (e) {
+  e.title = "click to copy";
+  e.onclick = function () {
+    navigator.clipboard.writeText(e.textContent);
+    var t = e.textContent;
+    e.textContent = "copied";
+    setTimeout(function () { e.textContent = t; }, 800);
+  };
+});
+</script>
 </body>
 </html>
