@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>goschler-style fractals in gimp · lot0x2c</title>
+<link rel="stylesheet" href="../../style.css?v=c5c9691f">
+</head>
+<body>
+<main>
+<p class="back"><a href="../../index.html">lot0x2c</a> / notes</p>
+<h1>goschler-style fractals in gimp</h1>
+<p class="date">2026-11-25 · gimp, art</p>
+<p>This is how to turn a photo into a symmetrical, kaleidoscope-like picture
+in GIMP, in the style of Stefan Goschler's <a href="https://www.gnu.org/graphics/goschler-its-me-and-gnu.html">GNU
+art</a>. My avatar is one of those. I don't know how the originals were made.
+This is a way to get close, with one photo for the shapes and another for the
+colours.</p>
+<figure><img src="mandala.jpg" alt="purple kaleidoscope with a GNU head in the middle and four Tux around it" style="width:100%;height:auto">
+<figcaption>A photo of me, a purple haze bud, a GNU head and four Tux.</figcaption>
+</figure>
+<details class="mini" open>
+<summary>contents</summary>
+<p><a href="#the-word-fractal">the word "fractal"</a> <a href="#what-the-filter-does">what the filter does</a> <a href="#by-hand">by hand</a> <a href="#as-a-script">as a script</a> <a href="#what-goes-wrong">what goes wrong</a> <a href="#the-objection-a-website-does-this-in-one-click">the objection: "a website does this in one click"</a> <a href="#so">so</a></p>
+</details>
+<details class="sec" id="the-word-fractal" open>
+<summary>The word "fractal"</summary>
+<p>A fractal has structure at every scale: zoom in, and there's more of it.
+What this note makes isn't one. Zoom in and you find pixels. I use the word
+because the picture that started this is called a flower fractal, and because
+"goschler-style mirrored photos" wouldn't tell you what it looks like.</p>
+</details>
+<details class="sec" id="what-the-filter-does" open>
+<summary>What the filter does</summary>
+<p>Nearly all the work is one filter, <b>Filters &gt; Distorts &gt;
+Kaleidoscope</b>. It picks a point in the photo, takes a thin wedge next to
+that point, and repeats the wedge around a circle, flipping every other copy
+so the edges meet. Most of the photo is never used. So the important decision
+is which part you keep, and these settings make it:</p>
+<table>
+<tr>
+<th>setting</th>
+<th>what it decides</th>
+</tr>
+<tr>
+<td>Mirrors</td>
+<td>how many times the pattern repeats around the circle</td>
+</tr>
+<tr>
+<td>Center X, Center Y</td>
+<td>the point in the photo the wedge starts from; 0 is the middle</td>
+</tr>
+<tr>
+<td>Zoom</td>
+<td>how much of the photo gets in: lower values show more, smaller</td>
+</tr>
+<tr>
+<td>Wrap input</td>
+<td>what happens past the photo's edge: on, it continues with mirrored copies; off, the border pixels get smeared outward</td>
+</tr>
+</table>
+<p>The stripes in the corners of my picture are the border pixels. That's
+Wrap input turned off, and the edge of my room going on much longer than it
+does.</p>
+</details>
+<details class="sec" id="by-hand" open>
+<summary>By hand</summary>
+<p>You need a photo for the structure, a photo for the colour, and one or two
+small pictures to hide in the pattern. I used a photo of me, a purple haze
+bud, and a drawing of the GNU and Tux at a campfire. I wrote this with GIMP
+3.0.8.</p>
+<ol>
+<li><b>Boost the contrast.</b> Duplicate the layer, set the copy to <i>Overlay</i> and merge down. Do it twice if the photo is hazy. A thin wedge
+of a flat photo is one flat colour, repeated.</li>
+<li><b>Run Kaleidoscope on the structure photo.</b> Start with 8 mirrors and
+Zoom around 60, then move the center until something you recognise lands in
+the middle. Mine was at 0.25, 0.2.</li>
+<li><b>Run it on the colour photo</b>, with a different number of mirrors.
+Crop out any white background first, because white has no colour to
+give.</li>
+<li><b>Blend.</b> Desaturate the structure layer. Put the colour layer above
+it in <i>LCh Color</i> mode, which keeps the lightness of what's below and
+takes the colour from what's above. Add a copy of it in <i>Overlay</i> at
+about 45% for texture.</li>
+<li><b>Tint.</b> Add a layer filled with purple, in <i>Multiply</i> at about
+55%. This pulls everything towards one palette.</li>
+<li><b>Glow.</b> Flatten the image, then use <i>Filters &gt; Artistic &gt;
+Softglow</i> with low brightness, and <i>Filters &gt; Light and Shadow &gt;
+Vignette</i>.</li>
+<li><b>Hide things.</b> Open each small picture as a layer, crop it to the
+subject, scale it down, and give it a layer mask with a feathered ellipse so
+its edges fade. Put one in the centre and a few around the ring.</li>
+</ol>
+<p>For the recursive version, run Kaleidoscope again on the finished image,
+before step 7.</p>
+</details>
+<details class="sec" id="as-a-script" open>
+<summary>As a script</summary>
+<p>The same steps up to the glow, in Python, so you can change a number and
+render again. Save it as <code>make.py</code> and run:</p>
+<pre>gimp-console -i --no-data --quit --batch-interpreter=python-fu-eval \
+  -b "exec(open('make.py').read())"</pre>
+<p>Inside GIMP the filter is called <code>gegl:mirrors</code>, and the
+settings have other names: <code>n-segs</code> is Mirrors, <code>o-x</code> and <code>o-y</code> are the center, <code>input-scale</code> is Zoom and <code>warp</code> is Wrap input. <code>warp</code> doesn't warp.</p>
+<pre>import gi
+gi.require_version("Gimp", "3.0"); gi.require_version("Gegl", "0.4")
+from gi.repository import Gimp, Gio, Gegl
+RUN = Gimp.RunMode.NONINTERACTIVE
+MODE = Gimp.LayerMode
+SIZE = 2000
+
+def flt(layer, op, **props):
+    f = Gimp.DrawableFilter.new(layer, op, op)
+    config = f.get_config()
+    for k, v in props.items():
+        config.set_property(k.replace("_", "-"), v)
+    layer.merge_filter(f)
+
+def add(img, layer, mode, opacity):
+    img.insert_layer(layer, None, 0)
+    layer.set_mode(mode); layer.set_opacity(opacity)
+
+def kaleidoscope(path, crop, mirrors, zoom, cx, cy, boost):
+    img = Gimp.Image.new(SIZE, SIZE, Gimp.ImageBaseType.RGB)
+    l = Gimp.file_load_layer(RUN, img, Gio.File.new_for_path(path))
+    img.insert_layer(l, None, 0)
+    x, y, w, h = crop
+    l.resize(w, h, -x, -y); l.scale(SIZE, SIZE, False); l.set_offsets(0, 0)
+    l = img.flatten()
+    for _ in range(boost):                  # step 1
+        d = l.copy()
+        add(img, d, MODE.OVERLAY, 100.0)
+        l = img.merge_down(d, Gimp.MergeType.EXPAND_AS_NECESSARY)
+    flt(l, "gegl:mirrors", n_segs=mirrors, input_scale=zoom,
+        o_x=cx, o_y=cy, warp=False)         # steps 2 and 3
+    return img, l
+
+img, base = kaleidoscope("me.jpg", (1000, 312, 2400, 2400), 8, 60.0, 0.25, 0.2, 2)
+base.desaturate(Gimp.DesaturateMode.LUMINANCE)
+_, bud = kaleidoscope("bud.jpg", (230, 120, 330, 560), 6, 55.0, 0.0, 0.0, 1)
+
+add(img, Gimp.Layer.new_from_drawable(bud, img), MODE.LCH_COLOR, 90.0)
+add(img, Gimp.Layer.new_from_drawable(bud, img), MODE.OVERLAY, 45.0)
+
+tint = Gimp.Layer.new(img, "tint", SIZE, SIZE, Gimp.ImageType.RGB_IMAGE, 100, MODE.NORMAL)
+add(img, tint, MODE.MULTIPLY, 55.0)
+Gimp.context_set_foreground(Gegl.Color.new("#7a46b8"))
+tint.edit_fill(Gimp.FillType.FOREGROUND)
+
+out = img.flatten()
+flt(out, "gegl:softglow", glow_radius=10.0, brightness=0.2, sharpness=0.7)
+flt(out, "gegl:vignette", shape="circle", radius=1.25, softness=0.8, gamma=1.6)
+Gimp.file_save(RUN, img, Gio.File.new_for_path("out.jpg"), None)</pre>
+<p>The two lists of four numbers are crops, as x, y, width and height in the
+original photo. They fit my photos. They won't fit yours.</p>
+</details>
+<details class="sec" id="what-goes-wrong" open>
+<summary>What goes wrong</summary>
+<ul>
+<li><b>You get thin lines on a dark background.</b> Zoom is a percentage, so
+1 means 1%. The photo has been shrunk to a dot in the middle, and the rest is
+its border, smeared.</li>
+<li><b>The middle is empty.</b> The filter shows what's at the center you
+gave it. If that's a wall, you get a symmetrical wall.</li>
+<li><b>It's washed out.</b> Boost the contrast before the Kaleidoscope step.
+A mirrored haze is still haze.</li>
+<li><b>GIMP never exits.</b> In batch mode, pass <code>--quit</code>.
+Otherwise it finishes the script and waits.</li>
+</ul>
+</details>
+<details class="sec" id="the-objection-a-website-does-this-in-one-click" open>
+<summary>The objection: "a website does this in one click"</summary>
+<p>It does, and if you want one picture of a flower, use the website. But the
+photo goes to whoever runs it, and what they do with it is up to them. Here
+the photo stays on your machine. You can also change one number in the script and
+render it again.</p>
+</details>
+<details class="sec" id="so" open>
+<summary>So</summary>
+<p>Choose the wedge first, because everything else is colouring it in. Boost
+the contrast before mirroring, take the colour from a second photo, and keep
+the hidden things small.</p>
+</details>
+<script>(function () {
+  function go() {
+    var d = document.getElementById(location.hash.slice(1));
+    if (d && d.tagName === "DETAILS") { d.open = true; d.scrollIntoView(); }
+  }
+  addEventListener("hashchange", go);
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".mini a")) setTimeout(go);
+  });
+  go();
+})();</script>
+</main>
+</body>
+</html>

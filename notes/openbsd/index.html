@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bare minimum to get openbsd running · lot0x2c</title>
+<link rel="stylesheet" href="../../style.css?v=c5c9691f">
+</head>
+<body>
+<main>
+<p class="back"><a href="../../index.html">lot0x2c</a> / notes</p>
+<h1>bare minimum to get openbsd running</h1>
+<p class="date">2026-11-22 · openbsd, install</p>
+<p>I wanted a small Unix system I could understand, without a desktop
+environment piled on top of it. By "understand" I mean that when something
+breaks, I can name the piece that broke. OpenBSD fits that well. The installer
+is text, the configuration is a handful of plain files, and the base system
+already includes X, a terminal and a window manager.</p>
+<p>This is the shortest path I know from an empty laptop to a usable OpenBSD
+7.9 session. By "bare minimum" I mean four things: Wi-Fi, a way to install
+packages, a terminal, and a window manager. No desktop environment, no panel,
+no compositor. Everything ships with the base system except two optional
+packages and, on some laptops, the firmware for the wireless chip.</p>
+<p>OpenBSD 8.0 came out in October 2026, and this describes 7.9. On 8.0 the file
+names have 80 in them, and I can't promise the installer asks the same
+questions.</p>
+<figure>
+<svg class="fig small" viewBox="0 0 600 360" role="img" aria-label="Illustration of the finished desktop: two overlapping xterm windows on a plain background, one showing ifconfig output, the other uname and pkg_info.">
+<rect class="box" x="1" y="1" width="598" height="358"></rect>
+<rect class="screen" x="20" y="20" width="370" height="210"></rect>
+<text x="32" y="44">$ ifconfig iwm0</text>
+<text x="32" y="62">iwm0: flags=8843&lt;UP,BROADCAST,RUNNING&gt;</text>
+<text x="62" y="80" class="t">status: active</text>
+<text x="62" y="98">ieee80211: join home chan 6</text>
+<text x="62" y="116" class="t">inet 192.168.1.23</text>
+<text x="62" y="134">netmask 0xffffff00</text>
+<text x="32" y="152">$</text>
+<rect class="screen" x="250" y="160" width="330" height="180" style="stroke: var(--teal); stroke-width: 2"></rect>
+<text x="262" y="184">$ uname -sr</text>
+<text x="262" y="202">OpenBSD 7.9</text>
+<text x="262" y="220">$ pkg_info -mz</text>
+<text x="262" y="238">fish</text>
+<text x="262" y="256">neovim</text>
+<text x="262" y="274">$
+<tspan class="t">█</tspan>
+</text>
+</svg>
+<figcaption>An illustration, not a screenshot: the finished session. Two
+xterms, cwm drawing their borders (the focused one in colour), and nothing
+else on the screen.</figcaption>
+</figure>
+<p>The commands below use <code>iwm0</code> as the wireless interface,
+because that's the Intel Wi-Fi on my machine. Yours may have another name;
+the Wi-Fi section shows how to find it.</p>
+<details class="mini" open>
+<summary>contents</summary>
+<p><a href="#before-you-start">before you start</a> <a href="#write-the-installer-to-a-usb-stick">write the installer to a usb stick</a> <a href="#install-the-base-system">install the base system</a> <a href="#give-your-user-doas">give your user doas</a> <a href="#connect-to-wi-fi">connect to wi-fi</a> <a href="#install-a-couple-of-comforts">install a couple of comforts</a> <a href="#start-a-graphical-session">start a graphical session</a> <a href="#the-objection-you-could-just-install-a-desktop">the objection: "you could just install a desktop"</a> <a href="#what-i-took-from-it">what i took from it</a></p>
+</details>
+<details class="sec" id="before-you-start" open>
+<summary>Before you start</summary>
+<ul>
+<li>A USB stick you're willing to erase.</li>
+<li>Ethernet, if you can get it. Some wireless chips need firmware that has
+to be downloaded, so you need the network to get the network.</li>
+<li>A backup of anything on the laptop's disk. The steps below give the
+installer the whole disk, and it erases it.</li>
+</ul>
+</details>
+<details class="sec" id="write-the-installer-to-a-usb-stick" open>
+<summary>Write the installer to a USB stick</summary>
+<p>Download <code>install79.img</code> and the <code>SHA256</code> file from
+a mirror listed in <a href="https://www.openbsd.org/faq/faq4.html">the installation guide</a>.
+Check that the download isn't damaged:</p>
+<pre>sha256sum install79.img
+grep install79.img SHA256</pre>
+<p>The two hashes must be identical. That rules out an accident. It doesn't
+rule out a dishonest mirror, which can publish a correct hash of the wrong
+image. If you already have an OpenBSD machine, <code>signify</code> checks the
+project's signature, which does:</p>
+<pre>signify -Cp /etc/signify/openbsd-79-base.pub -x SHA256.sig install79.img</pre>
+<p>Then find the stick and write the image to it. On Linux:</p>
+<pre>lsblk
+sudo dd if=install79.img of=/dev/sdX bs=1M conv=fsync status=progress</pre>
+<p>Replace <code>sdX</code> with the stick, and use the whole device
+(<code>sdb</code>), not a partition (<code>sdb1</code>). <code>dd</code> doesn't ask whether you're sure, so read the <code>lsblk</code> output twice. The size column is the easiest way to tell the stick from the
+internal disk.</p>
+</details>
+<details class="sec" id="install-the-base-system" open>
+<summary>Install the base system</summary>
+<p>Boot from the stick (the boot menu key is usually F12, F9 or Esc,
+depending on the laptop) and type <code>i</code> for (I)nstall. Most
+questions show a default in brackets, and Enter accepts it. The ones worth
+reading:</p>
+<ul>
+<li><b>Network:</b> configure <code>em0</code> (or whatever your Ethernet is
+called) with <code>autoconf</code> if it's plugged in. Leave Wi-Fi for
+later.</li>
+<li><b>Setup a user?</b> Yes. Make a normal user; you'll do your daily work
+as that user, not as root.</li>
+<li><b>Do you expect to run the X Window System?</b> Yes.</li>
+<li><b>Start X with xenodm?</b> If you answer yes, you can skip the <code>rcctl</code> step at the end.</li>
+<li><b>Disk:</b> the whole disk with the automatic layout is fine for a
+first install.</li>
+<li><b>Sets:</b> keep the X sets selected (<code>xbase</code>, <code>xshare</code>, <code>xfont</code>, <code>xserv</code>). Without them
+there's no graphical session, only the console.</li>
+</ul>
+<p>When it finishes, reboot and take the stick out. If the installer had a
+network, it usually fetches the firmware your hardware needs. If it didn't,
+run <code>doas fw_update</code> once you're on Ethernet (after the next
+step, so that <code>doas</code> works).</p>
+</details>
+<details class="sec" id="give-your-user-doas" open>
+<summary>Give your user doas</summary>
+<p><code>doas</code> runs one command as root, like <code>sudo</code>. Log
+in as your normal user and become root:</p>
+<pre>su -</pre>
+<p>Check that your user is in the <code>wheel</code> group with <code>id
+username</code>. Then, still as root, put this one line in <code>/etc/doas.conf</code>:</p>
+<pre>permit persist :wheel</pre>
+<p>It means: members of <code>wheel</code> may run commands as root, and
+after you type your password, <code>doas</code> won't ask again for a few
+minutes. Exit the root shell and test it. <code>doas whoami</code> should
+print <code>root</code>.</p>
+</details>
+<details class="sec" id="connect-to-wi-fi" open>
+<summary>Connect to Wi-Fi</summary>
+<p>List the interfaces and find the wireless one:</p>
+<pre>ifconfig</pre>
+<p>On my laptop <code>iwm0</code> is the Intel Wi-Fi and <code>em0</code> is
+Ethernet. Bring the wireless one up and scan for networks:</p>
+<pre>doas ifconfig iwm0 up
+doas ifconfig iwm0 scan</pre>
+<p>To make the connection survive a reboot, it goes in <code>/etc/hostname.iwm0</code>. That file will hold your Wi-Fi password in
+plain text, so set its permissions before you write the password into it.
+That way there's never a moment when another user can read it.</p>
+<pre>doas touch /etc/hostname.iwm0
+doas chmod 600 /etc/hostname.iwm0
+doas vi /etc/hostname.iwm0</pre>
+<p>Put these two lines in it:</p>
+<pre>join "YOUR_SSID" wpakey "YOUR_PASSWORD"
+inet autoconf</pre>
+<p>The first line joins the access point. The second asks DHCP for an IP
+address, a gateway and DNS servers. Apply it and check each part:</p>
+<pre>doas sh /etc/netstart iwm0
+ifconfig iwm0
+netstat -rn -f inet
+ping -c 3 1.1.1.1
+ping -c 3 openbsd.org</pre>
+<p><code>status: active</code> in the <code>ifconfig</code> output only
+means the laptop is talking to the access point. It doesn't mean anything is
+talking back.</p>
+<figure>
+<svg class="fig" viewBox="0 0 480 350" role="img" aria-label="The network chain: interface up, then wireless association, then DHCP lease, then default route, then DNS, each with the command that checks it.">
+<defs>
+<marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+<path class="head" d="M0,0 L10,5 L0,10 z"></path>
+</marker>
+</defs>
+<rect class="box" x="10" y="10" width="190" height="44"></rect>
+<text x="24" y="37" class="b">interface up</text>
+<text x="222" y="37" class="m">ifconfig iwm0 → UP</text>
+<line class="ln" x1="105" y1="54" x2="105" y2="78" marker-end="url(#ah1)"></line>
+<rect class="box" x="10" y="80" width="190" height="44"></rect>
+<text x="24" y="107" class="b">association</text>
+<text x="222" y="107" class="m">status: active</text>
+<line class="ln" x1="105" y1="124" x2="105" y2="148" marker-end="url(#ah1)"></line>
+<rect class="box" x="10" y="150" width="190" height="44"></rect>
+<text x="24" y="177" class="b">DHCP lease</text>
+<text x="222" y="177" class="m">inet 192.168.1.23</text>
+<line class="ln" x1="105" y1="194" x2="105" y2="218" marker-end="url(#ah1)"></line>
+<rect class="box" x="10" y="220" width="190" height="44"></rect>
+<text x="24" y="247" class="b">default route</text>
+<text x="222" y="247" class="m">netstat -rn → default</text>
+<line class="ln" x1="105" y1="264" x2="105" y2="288" marker-end="url(#ah1)"></line>
+<rect class="act" x="10" y="290" width="190" height="44"></rect>
+<text x="24" y="317" class="b">DNS</text>
+<text x="222" y="317" class="m">ping openbsd.org</text>
+</svg>
+<figcaption>Each step needs the one above it, and each has a command that
+checks it. Debug from the top down.</figcaption>
+</figure>
+<p>The order is what saves time. If <code>ping 1.1.1.1</code> works but <code>ping openbsd.org</code> fails, everything above DNS is fine, so look at <code>/etc/resolv.conf</code>. If both fail, the problem is higher up, such as
+no address or no default route. Changing nameservers can't fix that, because
+the packets never get far enough to ask one. (Some
+networks block ping, so on those a failure here isn't proof.)</p>
+</details>
+<details class="sec" id="install-a-couple-of-comforts" open>
+<summary>Install a couple of comforts</summary>
+<p>The base system already has a shell, <code>vi</code> and <code>xterm</code>. I added two packages:</p>
+<pre>doas pkg_add neovim fish</pre>
+<p><code>pkg_add</code> already knows which mirror to use, because the
+installer wrote it to <code>/etc/installurl</code>. Neither package is
+needed for anything that follows.</p>
+</details>
+<details class="sec" id="start-a-graphical-session" open>
+<summary>Start a graphical session</summary>
+<p>As your normal user, create <code>~/.xsession</code>, the script that
+runs after you log in graphically:</p>
+<pre>printf '#!/bin/sh\nexec cwm\n' &gt; ~/.xsession
+chmod +x ~/.xsession</pre>
+<p>Then enable the display manager, <code>xenodm</code>, which shows the
+login screen:</p>
+<pre>doas rcctl enable xenodm
+doas rcctl start xenodm</pre>
+<p>Log in. You get X, cwm and an empty screen. <code>Ctrl+Alt+Return</code> opens an xterm, <code>Alt+Tab</code> switches windows, and <code>man cwm</code> lists the rest.</p>
+<figure>
+<svg class="fig" viewBox="0 0 480 290" role="img" aria-label="The graphical session as five layers: xterm, cwm, xenodm, the X server, and the kernel, each with its one job.">
+<rect class="act" x="10" y="10" width="460" height="48"></rect>
+<text x="24" y="39" class="b t">xterm</text>
+<text x="120" y="39" class="m">the terminal, a program like any other</text>
+<rect class="box" x="10" y="66" width="460" height="48"></rect>
+<text x="24" y="95" class="b">cwm</text>
+<text x="120" y="95" class="m">places windows, draws borders, keys</text>
+<rect class="box" x="10" y="122" width="460" height="48"></rect>
+<text x="24" y="151" class="b">xenodm</text>
+<text x="120" y="151" class="m">login screen, then runs ~/.xsession</text>
+<rect class="box" x="10" y="178" width="460" height="48"></rect>
+<text x="24" y="207" class="b">X server</text>
+<text x="120" y="207" class="m">draws pixels, reads keyboard, mouse</text>
+<rect class="box" x="10" y="234" width="460" height="48"></rect>
+<text x="24" y="263" class="b">kernel</text>
+<text x="120" y="263" class="m">drivers for the screen and input</text>
+</svg>
+<figcaption>The whole desktop, one job per piece. xenodm starts the X
+server and shows the login; <code>~/.xsession</code> starts cwm; you start
+xterm.</figcaption>
+</figure>
+</details>
+<details class="sec" id="the-objection-you-could-just-install-a-desktop" open>
+<summary>The objection: "you could just install a desktop"</summary>
+<p>You could. <code>doas pkg_add xfce</code> gets you most of the way to one,
+and if you want a desktop and don't care what it's made of, do that. It's the
+better choice for that purpose. But then a broken screen could be the fault of
+any program the desktop brought with it. Here it's X, xenodm, cwm or
+xterm. With four suspects you can question all of them.</p>
+</details>
+<details class="sec" id="what-i-took-from-it" open>
+<summary>What I took from it</summary>
+<p>The network is a chain: interface, association, DHCP, address and
+gateway, DNS. Once I knew the order, debugging stopped being a matter of
+trying nameservers until one worked. The desktop is a chain too: X draws,
+xenodm logs you in, cwm manages the windows. Each piece has one job, so when
+something breaks, I can name the piece. The "c" in cwm is for "calm". With
+this few features, it can afford to be.</p>
+<p>If you want a system you understand, start this small and add things only
+when you notice they're missing. Further reading, all from the OpenBSD
+project: <a href="https://www.openbsd.org/faq/faq6.html">networking</a>, <a href="https://www.openbsd.org/faq/faq11.html">X11</a>, <a href="https://man.openbsd.org/cwm">cwm(1)</a> and <a href="https://man.openbsd.org/hostname.if">hostname.if(5)</a>.</p>
+</details>
+<script>(function () {
+  function go() {
+    var d = document.getElementById(location.hash.slice(1));
+    if (d && d.tagName === "DETAILS") { d.open = true; d.scrollIntoView(); }
+  }
+  addEventListener("hashchange", go);
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".mini a")) setTimeout(go);
+  });
+  go();
+})();</script>
+</main>
+</body>
+</html>

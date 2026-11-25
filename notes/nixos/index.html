@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>why nixos · lot0x2c</title>
+<link rel="stylesheet" href="../../style.css?v=c5c9691f">
+</head>
+<body>
+<main>
+<p class="back"><a href="../../index.html">lot0x2c</a> / notes</p>
+<h1>why nixos</h1>
+<p class="date">2026-11-23 · nix, linux</p>
+<p>I run NixOS on my laptop. This is about why, and what it costs, so you can
+decide whether the trade makes sense for you. The short version: NixOS keeps
+a written answer to the question "why is my computer like this?", and most
+systems don't.</p>
+<details class="mini" open>
+<summary>contents</summary>
+<p><a href="#what-declarative-means">what "declarative" means</a> <a href="#how-it-works">how it works</a> <a href="#what-i-get-out-of-it">what i get out of it</a> <a href="#the-objections">the objections</a> <a href="#so">so</a></p>
+</details>
+<details class="sec" id="what-declarative-means" open>
+<summary>What "declarative" means</summary>
+<p>People call NixOS "declarative", usually without saying what that means.
+It's the word that explains the rest, so I'll start there.</p>
+<p>On most systems you get a working setup by doing things in order: install
+a package, edit a file, enable a service. The system is the sum of every
+command anyone ever ran on it. The record of those commands is your shell
+history, which has a size limit, and your memory, which doesn't tell you when
+it's full.</p>
+<p>"Declarative" means you write down what the system should be, and a
+program works out how to get there. On NixOS that description lives in <code>/etc/nixos/configuration.nix</code>. You don't install fish. You write
+down that your shell is fish, and rebuild. Here's a trimmed piece of mine:</p>
+<pre>{ pkgs, ... }:
+{
+  imports = [
+    ./modules/audio.nix
+    ./modules/network.nix
+    ./modules/power.nix
+    # ...
+  ];
+
+  users.users.you = {
+    isNormalUser = true;
+    shell = pkgs.fish;
+    extraGroups = [ "wheel" ];
+  };
+  security.sudo.execWheelOnly = true;
+
+  # install-time version, never bump it
+  system.stateVersion = "26.05";
+}</pre>
+</details>
+<details class="sec" id="how-it-works" open>
+<summary>How it works</summary>
+<ol>
+<li>Every package is built into its own directory under <code>/nix/store</code>, named by a hash of everything that went into
+building it: the source, the dependencies, the build options. Change any
+input and you get a different hash, so a different directory. Nothing is
+built over the top of something else.</li>
+<li>The whole system, meaning the kernel, the services and the files in <code>/etc</code>, is built the same way, as one more store path that refers
+to all the others.</li>
+<li><code>nixos-rebuild switch</code> builds that path, then points <code>/run/current-system</code> at it and starts or stops services to
+match.</li>
+<li>The previous system is still in the store. It stays in the boot menu as
+an older "generation", which is NixOS's word for a complete system you used
+to have.</li>
+</ol>
+<p>Two things follow. A build that fails never touches the running system,
+because building and switching are separate steps. (A switch can still go
+wrong, for instance when a service won't start.) And going back is just
+pointing at the old path again: <code>nixos-rebuild switch --rollback</code>,
+or pick the older generation at boot.</p>
+</details>
+<details class="sec" id="what-i-get-out-of-it" open>
+<summary>What I get out of it</summary>
+<ul>
+<li><b>The config is the documentation.</b> Mine is 31 lines that import ten
+modules: audio, network, power, packages and so on. When I want to know how
+something is set up, I read the module. The other method was remembering.</li>
+<li><b>Removing a line removes the thing.</b> On most distributions,
+uninstalling can leave config files, users and enabled services behind. On
+NixOS, what isn't in the config isn't in the system after the next rebuild.
+To be exact about the scope: that covers packages, services and <code>/etc</code>. The old files sit in the store until they're
+garbage-collected, and your home directory and the data under <code>/var</code> stay.</li>
+<li><b>Breaking things is cheap.</b> A bad update costs one reboot into the
+previous generation. That's the whole penalty, as long as the bad update
+didn't also rewrite your data.</li>
+<li><b>It can be reproduced.</b> With the same config and the same pinned
+nixpkgs revision (a flake with its lock file, or a pinned channel), another
+machine builds the same system. Without pinning, "the same config" means the
+same config built against whatever nixpkgs is today, which is a weaker
+claim.</li>
+</ul>
+</details>
+<details class="sec" id="the-objections" open>
+<summary>The objections</summary>
+<p><b>"The learning curve is steep."</b> It is. Nix is a small, lazy,
+functional language, its error messages are often unhelpful, and the
+documentation is spread across the manual, the wiki and the source. You can
+get a long way by copying options from <a href="https://search.nixos.org/options">search.nixos.org</a>, which lists
+every option with its type and default. I won't claim that makes the curve
+gentle.</p>
+<p><b>"Downloaded binaries don't run."</b> By default they don't, and it
+follows from step 1. A program built for other distributions expects its
+loader, the piece that starts it, at <code>/lib64/ld-linux-x86-64.so.2</code>, and its libraries in places like <code>/usr/lib</code>. NixOS keeps the libraries in the store. At the
+loader's path it puts a stub, a program whose only job is to say that your
+program can't run. The stub runs fine.</p>
+<p>The fixes are to package the program, to run it in an environment that
+imitates the usual layout, such as <code>steam-run</code>, or to enable <code>programs.nix-ld</code>, which puts a working loader at that path. I
+enabled it, because pip wheels and npm downloads come as prebuilt
+binaries.</p>
+<p><b>"It uses a lot of disk."</b> Every generation keeps its packages alive. <code>sudo nix-collect-garbage -d</code> deletes the old generations and
+whatever only they were using, and <code>nix.gc.automatic</code> does it on a
+schedule. Mine runs weekly and drops generations older than 30 days. Undo is
+free; storing the undo isn't.</p>
+<p><b>"It's just configuration management, like Ansible."</b> The difference
+is the point. Ansible runs steps against a system that already exists, and
+whatever the playbook doesn't mention, it leaves the way it found it. Over
+time the machine drifts away from the playbook. NixOS builds its part of the
+system from the description every time, so that part has nothing left over
+to drift.</p>
+</details>
+<details class="sec" id="so" open>
+<summary>So</summary>
+<p>If you want to know why your system is the way it is, NixOS gives you a
+file that says so. The price is learning Nix, and some extra work to run
+programs that weren't built for it. For the machine I use every day, I think
+that's a fair trade. If you don't need to know why, you don't need NixOS.</p>
+<p>If you want to find out, try it in a virtual machine first. The rollback
+menu goes back to every system you had on NixOS, and the one you had before
+NixOS isn't on it.</p>
+<p>The other route to the same place is a system small enough to read all
+of. I wrote about that in <a href="../openbsd/index.html">bare minimum to get openbsd running</a>.
+Either way, you end up with a system you can explain.</p>
+</details>
+<script>(function () {
+  function go() {
+    var d = document.getElementById(location.hash.slice(1));
+    if (d && d.tagName === "DETAILS") { d.open = true; d.scrollIntoView(); }
+  }
+  addEventListener("hashchange", go);
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".mini a")) setTimeout(go);
+  });
+  go();
+})();</script>
+</main>
+</body>
+</html>

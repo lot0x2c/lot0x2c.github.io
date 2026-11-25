@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+<channel>
+<title>lot0x2c news</title>
+<link>https://lot0x2c.github.io/news/</link>
+<description>news notes</description>
+<item>
+<title>nvidia falls after jensen huang returns as ceo</title>
+<link>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-11-24-nvidia-falls-after-jensen-huang-returns-as-ceo</link>
+<guid>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-11-24-nvidia-falls-after-jensen-huang-returns-as-ceo</guid>
+<pubDate>Tue, 24 Nov 2026 00:00:00 +0000</pubDate>
+<description>
+&lt;p&gt;nvidia's board reinstated huang about 12 days after he resigned amid a personal scandal and export probes. shares jumped about 31% on the news, then fell over 7% on tuesday. doj and sec probes into alleged chip smuggling continue, and some us senators criticise the reinstatement. &lt;a href="https://finance.yahoo.com/markets/stocks/article/nvidia-stock-falls-after-epic-rally-on-jensen-huangs-return-as-ceo-094535877.html"&gt;source&lt;/a&gt;&lt;/p&gt;
+</description>
+</item>
+<item>
+<title>india: winter session of parliament still unscheduled</title>
+<link>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-11-24-india-winter-session-of-parliament-still-unscheduled</link>
+<guid>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-11-24-india-winter-session-of-parliament-still-unscheduled</guid>
+<pubDate>Tue, 24 Nov 2026 00:00:00 +0000</pubDate>
+<description>
+&lt;p&gt;dates not announced; the session is likely to start in the first week of december, or the monsoon session may simply be continued. the expected main item is a constitutional amendment on delimitation and women's reservation that could raise the lok sabha from 543 to up to 850 seats. based on government sources, so it may change. &lt;a href="https://ianslive.in/winter-session-of-parliament-likely-to-start-in-first-week-of-dec--20261115210003"&gt;source&lt;/a&gt;&lt;/p&gt;
+</description>
+</item>
+<item>
+<title>openai and cisco release shirudo</title>
+<link>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-11-23-openai-and-cisco-release-shirudo</link>
+<guid>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-11-23-openai-and-cisco-release-shirudo</guid>
+<pubDate>Mon, 23 Nov 2026 00:00:00 +0000</pubDate>
+<description>
+&lt;p&gt;an open-source tool that uses ebpf to block specific exploits on running linux systems while patches roll out. pre-release; needs a patched kernel and tpm 2.0. &lt;a href="https://helpnetsecurity.com/2026/11/24/cisco-openai-shirudo"&gt;source&lt;/a&gt;&lt;/p&gt;
+</description>
+</item>
+<item>
+<title>dread was hijacked</title>
+<link>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-10-dread-was-hijacked</link>
+<guid>https://lot0x2c.github.io/news/2026-sep-dec.html#2026-10-dread-was-hijacked</guid>
+<description>
+&lt;p&gt;attackers took over its onion domain and keys. its admin said the main onion private key was accidentally included in a goBalance update; reports also mention a goBalance flaw that exposed other hidden services. details differ between sources. &lt;a href="https://hackread.com/dread-dark-web-forum-hijacked-domain-keys/"&gt;source&lt;/a&gt;&lt;/p&gt;
+</description>
+</item>
+</channel>
+</rss>

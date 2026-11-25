@@ -4,50 +4,73 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>oeel · lot0x2c</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Ubuntu+Sans+Mono&display=swap">
-<link rel="stylesheet" href="../../style.css?v=4">
+<link rel="stylesheet" href="../../style.css?v=c5c9691f">
 </head>
 <body>
 <main>
 <p class="back"><a href="../../index.html">lot0x2c</a> / projects</p>
 <h1>oeel</h1>
-
 <p>oeel is a file tree in an Emacs side window that you edit like text, in
 the spirit of <a href="https://github.com/stevearc/oil.nvim">oil.nvim</a>.
 Folders open in place, and indentation shows which folder a line is in. Edit
-the lines, save, and the files on disk change to match. Source on
-<a href="https://github.com/lot0x2c/oeel">GitHub</a>.</p>
-
+the lines, save, and the files on disk change to match. Source on <a href="https://github.com/lot0x2c/oeel">GitHub</a>.</p>
 <pre> ~/code/project/
 - src/
     main.el
     util.el
 + test/
   README.md</pre>
-
-<h2>What an edit does</h2>
+<details class="mini" open>
+<summary>contents</summary>
+<p><a href="#what-an-edit-does">what an edit does</a> <a href="#install">install</a> <a href="#use">use</a> <a href="#safety">safety</a></p>
+</details>
+<details class="sec" id="what-an-edit-does" open>
+<summary>What an edit does</summary>
 <table>
-<tr><th>you do this in the drawer</th><th>saving does this</th></tr>
-<tr><td>delete a line (<code>dd</code>)</td><td>moves the file to the trash</td></tr>
-<tr><td>change a name (<code>cw</code>, <code>i</code>, …)</td><td>renames it</td></tr>
-<tr><td>cut a line, paste it under another folder</td><td>moves it</td></tr>
-<tr><td>copy a line, paste it, give it a new name</td><td>copies it</td></tr>
-<tr><td>type a new line (<code>o</code>)</td><td>creates a file</td></tr>
-<tr><td>type a name ending in <code>/</code></td><td>creates a folder</td></tr>
-<tr><td>type <code>a/b/c.txt</code></td><td>creates the folders and the file</td></tr>
-<tr><td>indent a line under a folder (<code>&gt;&gt;</code>)</td><td>moves it into that folder</td></tr>
+<tr>
+<th>you do this in the drawer</th>
+<th>saving does this</th>
+</tr>
+<tr>
+<td>delete a line (<code>dd</code>)</td>
+<td>moves the file to the trash</td>
+</tr>
+<tr>
+<td>change a name (<code>cw</code>, <code>i</code>, …)</td>
+<td>renames it</td>
+</tr>
+<tr>
+<td>cut a line, paste it under another folder</td>
+<td>moves it</td>
+</tr>
+<tr>
+<td>copy a line, paste it, give it a new name</td>
+<td>copies it</td>
+</tr>
+<tr>
+<td>type a new line (<code>o</code>)</td>
+<td>creates a file</td>
+</tr>
+<tr>
+<td>type a name ending in <code>/</code></td>
+<td>creates a folder</td>
+</tr>
+<tr>
+<td>type <code>a/b/c.txt</code></td>
+<td>creates the folders and the file</td>
+</tr>
+<tr>
+<td>indent a line under a folder (<code>&gt;&gt;</code>)</td>
+<td>moves it into that folder</td>
+</tr>
 </table>
-<p>Nothing touches the disk until you save (<code>:w</code>,
-<code>C-x C-s</code> or <code>C-c C-c</code>). Saving lists every change and
+<p>Nothing touches the disk until you save (<code>:w</code>, <code>C-x C-s</code> or <code>C-c C-c</code>). Saving lists every change and
 asks before doing any of them.</p>
-
-<h2>Install</h2>
-<p>Needs Emacs 29.1 or newer.
-<a href="https://github.com/rainstorm/nerd-icons.el">nerd-icons</a> adds icons
-when it's installed, and <a href="https://github.com/emacs-evil/evil">evil</a>
-adds the vim keys. The package is called <code>oeel-drawer</code>.</p>
+</details>
+<details class="sec" id="install" open>
+<summary>Install</summary>
+<p>Needs Emacs 29.1 or newer. <a href="https://github.com/rainstorm/nerd-icons.el">nerd-icons</a> adds icons
+when it's installed, and <a href="https://github.com/emacs-evil/evil">evil</a> adds the vim keys. The package is called <code>oeel-drawer</code>.</p>
 <p>Doom Emacs, in <code>packages.el</code>:</p>
 <pre>(package! oeel-drawer :recipe (:host github :repo "lot0x2c/oeel"))</pre>
 <p>Emacs 30, with the built-in <code>use-package</code>:</p>
@@ -55,21 +78,32 @@ adds the vim keys. The package is called <code>oeel-drawer</code>.</p>
   :vc (:url "https://github.com/lot0x2c/oeel")
   :bind ("C-c d" . oeel-drawer-toggle))</pre>
 <p>Emacs 29: <code>M-x package-vc-install RET https://github.com/lot0x2c/oeel</code>.</p>
-
-<h2>Use</h2>
+</details>
+<details class="sec" id="use" open>
+<summary>Use</summary>
 <table>
-<tr><th>command</th><th>what it does</th></tr>
-<tr><td><code>oeel-drawer-toggle</code></td><td>show or hide the drawer; hiding keeps open folders and edits</td></tr>
-<tr><td><code>oeel-drawer-focus</code></td><td>show the drawer and move into it, onto the file you're in</td></tr>
-<tr><td><code>oeel-drawer-reveal</code></td><td>show the drawer with the current file's folders open</td></tr>
+<tr>
+<th>command</th>
+<th>what it does</th>
+</tr>
+<tr>
+<td><code>oeel-drawer-toggle</code></td>
+<td>show or hide the drawer; hiding keeps open folders and edits</td>
+</tr>
+<tr>
+<td><code>oeel-drawer-focus</code></td>
+<td>show the drawer and move into it, onto the file you're in</td>
+</tr>
+<tr>
+<td><code>oeel-drawer-reveal</code></td>
+<td>show the drawer with the current file's folders open</td>
+</tr>
 </table>
 <p>No global keys are bound. Inside the drawer every editing key works as
-usual, because it's a text buffer. On top of that, <code>RET</code> or
-<code>l</code> opens a file or folder, <code>h</code> closes a folder,
-<code>-</code> goes up, <code>.</code> makes a folder the root and
-<code>gh</code> shows dotfiles.</p>
-
-<h2>Safety</h2>
+usual, because it's a text buffer. On top of that, <code>RET</code> or <code>l</code> opens a file or folder, <code>h</code> closes a folder, <code>-</code> goes up, <code>.</code> makes a folder the root and <code>gh</code> shows dotfiles.</p>
+</details>
+<details class="sec" id="safety" open>
+<summary>Safety</summary>
 <ul>
 <li>Every change is listed before it happens.</li>
 <li>Deleted files go to the system trash.</li>
@@ -79,8 +113,19 @@ refuses names with <code>..</code>, <code>~</code> or a leading <code>/</code>.<
 (<code>a</code>→<code>b</code>, <code>b</code>→<code>a</code>) works.</li>
 <li>Buffers visiting a renamed or moved file follow it to its new name.</li>
 </ul>
-
 <p>oeel is free software under the GPL, version 3 or later.</p>
+</details>
+<script>(function () {
+  function go() {
+    var d = document.getElementById(location.hash.slice(1));
+    if (d && d.tagName === "DETAILS") { d.open = true; d.scrollIntoView(); }
+  }
+  addEventListener("hashchange", go);
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".mini a")) setTimeout(go);
+  });
+  go();
+})();</script>
 </main>
 </body>
 </html>
