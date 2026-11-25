@@ -28,3 +28,11 @@ footer { border-top: 1px solid var(--line); margin-top: 2em; }
 .fig .head { fill: currentColor; }
 .fig .b { font-weight: bold; }
 .fig .m { fill: var(--muted); }
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "[+] "; }
+details[open] > summary::before { content: "[-] "; }
+details:not([open]) > summary::after { content: "…"; }
+details.n > summary::before { content: "+ "; color: var(--link); }
+details.n[open] > summary::before { content: "- "; }
+details.n > summary::after { content: ""; }
