@@ -45,7 +45,7 @@ h1 {
 .avatar { object-fit: cover; }
 
 a { color: var(--teal); }
-a:hover { background: color-mix(in srgb, var(--teal) 50%, transparent); color: var(--text); text-decoration-color: var(--teal); }
+a:hover { background: color-mix(in srgb, var(--teal) 33%, transparent); color: var(--text); text-decoration-color: var(--teal); }
 
 summary { cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
@@ -106,4 +106,18 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .posts li { margin: 0.5em 0; }
   pre { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
   figure { margin: 1.2em 0; }
+}
+
+/* desk: photo left, notes right; wider than the text column on big screens */
+.desk-row { display: flex; gap: 1.4em; align-items: flex-start; margin: 0.6em 0 0.6em 2.2em; width: min(54em, calc(100vw - 110px)); }
+.desk-row .desk { flex: 0 0 50%; margin: 0; }
+.desk-text { flex: 1; min-width: 0; }
+.desk-text .posts, .desk-text p { margin-left: 0; }
+.desk-text .posts { margin-top: 0; }
+@media (max-width: 760px) {
+  .desk-row { display: block; width: auto; }
+  .desk-row .desk { margin-bottom: 0.8em; }
+}
+@media (max-width: 600px) {
+  .desk-row { margin-left: 1.4em; }
 }
