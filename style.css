@@ -18,7 +18,9 @@ img, svg { max-width: 100%; height: auto; }
 table { display: block; overflow-x: auto; border-collapse: collapse; }
 th, td { text-align: left; padding: 0.2em 1em 0.2em 0; }
 ul.posts, ul.reads { list-style: none; padding: 0; }
-.reads li { margin: 0.5em 0; }
+.reads li { display: flex; gap: 1em; margin: 0.5em 0; }
+.reads .s { flex: 0 0 7.5em; white-space: nowrap; }
+.reads .c { flex: 1; min-width: 0; }
 .s, .d, .date, .credit, .back, .sub, figcaption { color: var(--muted); font-size: 0.9em; }
 .desk-row { display: flex; flex-wrap: wrap; gap: 1em; }
 .desk { flex: 1 1 14em; margin: 0; }
